@@ -1,22 +1,38 @@
 package bt.edu.gcit.usermicroservice.dao;
 
-import bt.edu.gcit.usermicroservice.entity.Role;
+import java.util.Optional;
+
 import org.springframework.stereotype.Repository;
+
+import bt.edu.gcit.usermicroservice.entity.Role;
 import jakarta.persistence.EntityManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.PersistenceContext;
 
 @Repository
 public class RoleDAOImpl implements RoleDAO {
+
+    @PersistenceContext
     private EntityManager entityManager;
 
-    @Autowired
-    public RoleDAOImpl(EntityManager entityManager) {
-        this.entityManager = entityManager;
+    
+    public Role save(Role role) {
+        entityManager.persist(role);
+        return role;
     }
 
     @Override
-    public void addRole(Role role) {
-        // TODO Auto-generated method
-        entityManager.persist(role);
+    public Optional<Role> findById(int id) {
+        Role role = entityManager.find(Role.class, id);
+        return Optional.ofNullable(role);
+    }
+
+    @Override
+    public Role update(Role role) {
+        return entityManager.merge(role);
+    }
+
+    @Override
+    public void delete(Role role) {
+        entityManager.remove(role); 
     }
 }

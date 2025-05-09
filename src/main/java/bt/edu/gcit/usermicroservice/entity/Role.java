@@ -6,51 +6,54 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.JoinColumn;
-import java.util.List;
 
 @Entity
 @Table(name = "roles")
 public class Role {
+
+    // Default constructor
     public Role() {
-        // Default constructor
     }
 
+    // Parameterized constructor
     public Role(String name, String description) {
         this.name = name;
         this.description = description;
     }
 
+    // ID field with auto-generation strategy
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    // Name field with constraints
     @Column(name = "name", nullable = false, unique = true, length = 40)
     private String name;
+
+    // Description field with constraints
     @Column(name = "description", nullable = false, length = 150)
     private String description;
 
-    // Getters
+    // Getters and Setters
+
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    // Setters
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public void setDescription(String description) {
