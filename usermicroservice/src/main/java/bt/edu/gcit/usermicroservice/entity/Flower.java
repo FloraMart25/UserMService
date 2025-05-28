@@ -18,53 +18,41 @@ public class Flower {
     @Column(name = "flower_name", length = 100, nullable = false)
     private String name;
 
-    @Column(length = 8, nullable = false)
+    @Column(nullable = false)
     private int price;
-    @Column(length = 8, nullable = false)
+
+    @Column(nullable = false)
     private int quantity;
     @Column(nullable = false)
     private String details;
 
-    @Column
+    @Column(length = 500)
     private String image;
 
     @Column(name = "posted_at", nullable = false)
     private LocalDateTime postedAt;
 
-    // Optional user-related fields (commented out or include if relevant to your app)
-    // @Column(nullable = false, unique = true)
-    // private String email;
-
-    // private String password;
-
-    // private int phone;
-
-    // private String licenseNo;
-
-    // private boolean enabled;
-
-    // private String photo;
-
-    // private String certificate;
-
     @ManyToOne(fetch = FetchType.EAGER)
-    // @JsonBackReference
+    @JsonBackReference
     @JoinColumn(name = "shopowner_id", nullable = false)
     private User shopOwner;
-    
+
     // Constructors
     public Flower() {
         // Empty constructor
     }
 
-    public Flower(String name, int price, String details,  LocalDateTime postedAt, User shopOwner) {
+    public Flower(String name, int price, String details, LocalDateTime postedAt, User shopOwner, String image,
+            int quantity) {
         this.name = name;
         this.price = price;
         this.details = details;
+        this.image = image;
+        this.quantity = quantity;
         this.postedAt = postedAt;
         this.shopOwner = shopOwner;
     }
-    
+
     // Getters and Setters
     public int getFlower_id() {
         return flower_id;
@@ -89,6 +77,7 @@ public class Flower {
     public void setPrice(int price) {
         this.price = price;
     }
+
     public int getQuantity() {
         return quantity;
     }
@@ -96,6 +85,7 @@ public class Flower {
     public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
+
     public String getDetails() {
         return details;
     }
@@ -120,12 +110,17 @@ public class Flower {
         this.postedAt = postedAt;
     }
 
+    @PrePersist
+    protected void onCreate() {
+        this.postedAt = LocalDateTime.now();
+    }
+
     public User getShopOwner() {
         return shopOwner;
     }
-    
+
     public void setShopOwner(User shopOwner) {
         this.shopOwner = shopOwner;
     }
-    
+
 }

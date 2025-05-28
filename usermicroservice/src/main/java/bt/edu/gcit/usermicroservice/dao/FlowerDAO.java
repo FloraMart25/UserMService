@@ -9,10 +9,15 @@ import bt.edu.gcit.usermicroservice.entity.User;
 public interface FlowerDAO {
 
         Flower save(Flower flower);
-        List<Flower> findByShopOwnerId(Long shopOwnerId);
-Flower findById(int theId);
-Flower findById(long theId);
-List<Flower> findAll();
-  
-} 
 
+        List<Flower> findByShopOwnerId(Long shopOwnerId);
+
+        Flower findByID(int theId);
+
+        void deleteByID(int id);
+
+        List<Flower> findAll();
+
+        Flower updateFlower(Flower updatedFlower);
+
+}

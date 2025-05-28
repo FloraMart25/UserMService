@@ -8,17 +8,21 @@ import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
-
 public interface FlowerService {
-    Flower save(Flower user);
-    Flower findById(int theId);
-    Flower findById(long theId);
-    List<Flower> findByShopOwnerId(Long shopOwnerId);
- Flower updateFlower(int id, Flower updatedFlower);
+   Flower save(Flower user);
 
-    void uploadFlowerPhoto(int id, MultipartFile photo) throws IOException;
+   Flower findByID(int theId);
+
+   Flower findByID(long theId);
+
+   List<Flower> findByShopOwnerId(Long shopOwnerId);
+
+   Flower updateFlower(int id, Flower updatedFlower);
+
+   void deleteByID(int id);
+
+   void uploadFlowerPhoto(int id, MultipartFile photo) throws IOException;
+
    List<Flower> findAll();
-   
-    
-    
+
 }

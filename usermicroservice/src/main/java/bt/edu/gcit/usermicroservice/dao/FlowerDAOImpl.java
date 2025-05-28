@@ -6,6 +6,7 @@ import bt.edu.gcit.usermicroservice.entity.User;
 import org.springframework.stereotype.Repository;
 // import javax.persistence.EntityManager;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.TypedQuery;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,35 +17,52 @@ import bt.edu.gcit.usermicroservice.exception.UserNotFoundException;
 @Repository
 public class FlowerDAOImpl implements FlowerDAO {
     private EntityManager entityManager;
-    
+
     @Autowired
     public FlowerDAOImpl(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
- 
+
     @Override
     public Flower save(Flower flower) {
         return entityManager.merge(flower);
     }
-    @Override
-    public Flower findById(int id) {
-        return entityManager.find(Flower.class, id);
-    } 
-    @Override
-    public Flower findById(long id) {
-        return entityManager.find(Flower.class, id);
-    } 
-    @Override
-public List<Flower> findByShopOwnerId(Long shopOwnerId) {
-    String jpql = "SELECT f FROM Flower f WHERE f.shopOwner.id = :shopOwnerId";
-    TypedQuery<Flower> query = entityManager.createQuery(jpql, Flower.class);
-    query.setParameter("shopOwnerId", shopOwnerId);
-    return query.getResultList(); 
-}
-public List<Flower> findAll() {
-    String query = "SELECT f FROM Flower f";  // JPQL query to fetch all flowers
-    return entityManager.createQuery(query, Flower.class).getResultList();
-}
 
-  
+    @Override
+    public Flower updateFlower(Flower updatedFlower) {
+        return entityManager.merge(updatedFlower);
     }
+    
+    @Override
+    public Flower findByID(int id) {
+        Flower flower = entityManager.find(Flower.class, id);
+        if (flower == null) {
+            throw new EntityNotFoundException("Flower with ID " + id + " not found");
+        }
+        return flower;
+    }
+
+     @Override
+    public void deleteByID(int id) {
+
+        Flower flower= findByID(id);
+        if (flower == null) {
+            throw new EntityNotFoundException("Product with ID " + id + " not found");
+        }
+        entityManager.remove(flower);
+
+    }
+    @Override
+    public List<Flower> findByShopOwnerId(Long shopOwnerId) {
+        String jpql = "SELECT f FROM Flower f WHERE f.shopOwner.id = :shopOwnerId";
+        TypedQuery<Flower> query = entityManager.createQuery(jpql, Flower.class);
+        query.setParameter("shopOwnerId", shopOwnerId);
+        return query.getResultList();
+    }
+
+    public List<Flower> findAll() {
+        String query = "SELECT f FROM Flower f"; // JPQL query to fetch all flowers
+        return entityManager.createQuery(query, Flower.class).getResultList();
+    }
+
+}

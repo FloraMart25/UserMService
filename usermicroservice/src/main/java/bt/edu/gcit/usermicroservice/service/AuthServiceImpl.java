@@ -15,10 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 @Service
 public class AuthServiceImpl implements AuthService {
- // @Autowired
- // private AuthenticationManager authenticationManager;
- // @Autowired
- // private UserDetailsService userDetailsService;
  private final AuthenticationManager authenticationManager;
  private final UserDetailsService userDetailsService;
  private final PasswordEncoder passwordEncoder;
@@ -30,35 +26,6 @@ UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
  this.passwordEncoder = passwordEncoder;
  }
  @Override
-//  public UserDetails login(String email, String password) {
-//     // System.out.println("show: " + authenticationManager.authenticate(new
-//     System.out.println("authenticating");
-// //    UsernamePasswordAuthenticationToken(email, password)));
-// try {
-//     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-//     // Print out the stored password (encoded) and the raw password from the request
-//     String storedPassword = ((org.springframework.security.core.userdetails.User) userDetails).getPassword();
-//     System.out.println("Stored Password (Encoded): " + storedPassword);
-//     System.out.println("Password sent in the request: " + password);
-//     // System.out.println(passwordEncoder.encode("123abc"));
-
-//     // Compare passwords
-//     if (passwordEncoder.matches(password, storedPassword)) {
-//         // Passwords match, authenticate user
-//         System.out.println("Password matches and authentication successful!");
-//         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-        
-//         return userDetails;
-//     } else {
-//         System.out.println("Password does not match stored value");
-//         throw new RuntimeException("Invalid email or password");
-//     }
-// } catch (Exception e) {
-//     System.out.println("Authentication failed: " + e.getMessage());
-//     throw new RuntimeException("Invalid email or password");
-// }
-//    }
-// }
 public UserDetails login(String email, String password) {
     try {
         System.out.println("Authenticating...");
