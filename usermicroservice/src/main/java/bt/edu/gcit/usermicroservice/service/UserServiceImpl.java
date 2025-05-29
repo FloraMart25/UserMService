@@ -12,26 +12,20 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import org.springframework.util.StringUtils;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import bt.edu.gcit.usermicroservice.exception.FileSizeException;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.SimpleMailMessage;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserDAO userDAO;
     private final BCryptPasswordEncoder passwordEncoder;
-    @Autowired
-    private JavaMailSender mailSender;
-     // 🔐 Add this map here for storing OTPs temporarily
-    private Map<String, String> otpStorage = new ConcurrentHashMap<>();
+
+
     private final String uploadDir = "src/main/resources/static/images";
+
     @Autowired
     @Lazy
     public UserServiceImpl(UserDAO userDAO, BCryptPasswordEncoder passwordEncoder) {
@@ -42,7 +36,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User save(User user) {
-        if (!user.getPassword().startsWith("$2a$")) { // means it's not encoded yet
+        if (!user.getPassword().startsWith("$2a$")) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         return userDAO.save(user);
@@ -79,29 +73,22 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public User updateUser(int id, User updatedUser) {
-        // First, find the user by ID
         User existingUser = userDAO.findById(id);
 
-        // If the user doesn't exist, throw UserNotFoundException
         if (existingUser == null) {
             throw new UserNotFoundException("User not found with id: " + id);
         }
 
-        // Update the existing user with the data from updatedUser
         existingUser.setName(updatedUser.getName());
-        // existingUser.setLastName(updatedUser.getLastName());
         existingUser.setEmail(updatedUser.getEmail());
 
-        // Check if the password has changed. If it has, encode the new password
-        // before saving.
-        if (!existingUser.getPassword().equals(updatedUser.getPassword())) {
-
-            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        String newPassword = updatedUser.getPassword();
+        if (newPassword != null && !newPassword.isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(newPassword));
         }
 
         existingUser.setRoles(updatedUser.getRoles());
 
-        // Save the updated user and return it
         return userDAO.save(existingUser);
     }
 
@@ -121,68 +108,23 @@ public class UserServiceImpl implements UserService {
         if (photo.getSize() > 1024 * 1024) {
             throw new FileSizeException("File size must be < 1MB");
         }
-        // String filename = StringUtils.cleanPath(photo.getOriginalFilename());
-        // Path uploadPath = Paths.get(uploadDir, filename);
-        // photo.transferTo(uploadPath);
-        // save(user);
+
         String originalFilename = StringUtils.cleanPath(photo.getOriginalFilename());
         String filenameExtension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
-        String filenameWithoutExtension = originalFilename.substring(0,
-                originalFilename.lastIndexOf("."));
+        String filenameWithoutExtension = originalFilename.substring(0, originalFilename.lastIndexOf("."));
         String timestamp = String.valueOf(System.currentTimeMillis());
-        // Append the timestamp to the filename
-        String filename = filenameWithoutExtension + "_" + timestamp + "." +
-                filenameExtension;
+        String filename = filenameWithoutExtension + "_" + timestamp + "." + filenameExtension;
 
         Path uploadPath = Paths.get(uploadDir, filename);
         photo.transferTo(uploadPath);
+        Files.createDirectories(uploadPath.getParent());
 
         user.setPhoto(filename);
         save(user);
     }
 
-    
     @Override
     public User findByEmail(String email) {
         return userDAO.findByEmail(email);
     }
-
-
-    @Override
-    public void generateAndSendOtp(String email) {
-        User user = userDAO.findByEmail(email);
-        if (user == null) {
-            throw new UserNotFoundException("User not found with email: " + email);
-        }
-
-        String otp = String.valueOf(new Random().nextInt(900000) + 100000); // 6-digit OTP
-        otpStorage.put(email, otp);
-
-        // Send OTP via email
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("Password Reset OTP");
-        message.setText("Your OTP for password reset is: " + otp);
-        mailSender.send(message);
-    }
-
-    @Override
-    public boolean verifyOtp(String email, String otp) {
-        String storedOtp = otpStorage.get(email);
-        return otp != null && otp.equals(storedOtp);
-    }
-
-    @Override
-    @Transactional
-    public void resetPassword(String email, String newPassword) {
-        User user = userDAO.findByEmail(email);
-        if (user == null) {
-            throw new UserNotFoundException("User not found with email: " + email);
-        }
-
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userDAO.save(user);
-        otpStorage.remove(email); // Invalidate OTP
-    }
-
 }

@@ -194,28 +194,5 @@ public class UserRestController {
         System.out.println("User enabled status updated successfully");
         return ResponseEntity.ok().build();
     }
-     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
-        userService.generateAndSendOtp(email);
-        return ResponseEntity.ok("OTP sent to email if user exists.");
-    }
-
-    @PostMapping("/verify-otp")
-    public ResponseEntity<String> verifyOtp(@RequestParam String email, @RequestParam String otp) {
-        boolean isValid = userService.verifyOtp(email, otp);
-        if (isValid) {
-            return ResponseEntity.ok("OTP verified");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid OTP");
-        }
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String newPassword) {
-        userService.resetPassword(email, newPassword);
-        return ResponseEntity.ok("Password reset successful");
-    }
-
-    // user login
-
+     
 }
