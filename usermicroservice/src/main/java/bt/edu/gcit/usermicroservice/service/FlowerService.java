@@ -11,18 +11,18 @@ import java.io.IOException;
 public interface FlowerService {
    Flower save(Flower user);
 
-   Flower findByID(int theId);
+   Flower findById(int theId);
 
-   Flower findByID(long theId);
+   Flower findById(long theId);
 
    List<Flower> findByShopOwnerId(Long shopOwnerId);
 
    Flower updateFlower(int id, Flower updatedFlower);
 
-   void deleteByID(int id);
-
    void uploadFlowerPhoto(int id, MultipartFile photo) throws IOException;
 
    List<Flower> findAll();
+
+   void deleteById(long id);
 
 }

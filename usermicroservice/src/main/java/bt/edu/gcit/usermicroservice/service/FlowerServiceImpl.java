@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Lazy;
 // import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import bt.edu.gcit.usermicroservice.exception.UserNotFoundException;
+import bt.edu.gcit.usermicroservice.exception.FlowerNotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import org.springframework.util.StringUtils;
@@ -21,7 +21,6 @@ import java.util.List;
 @Service
 public class FlowerServiceImpl implements FlowerService {
     private final FlowerDAO FlowerDAO;
-    // private final BCryptPasswordEncoder passwordEncoder;
     private final String uploadDir = "src/main/resources/static/images";
 
     @Autowired
@@ -44,60 +43,54 @@ public class FlowerServiceImpl implements FlowerService {
     }
 
     @Override
-    public Flower findByID(int theId) {
-        return FlowerDAO.findByID(theId);
+    public Flower findById(int theId) {
+        return FlowerDAO.findById(theId);
     }
 
     @Override
-    public Flower findByID(long theId) {
-        return FlowerDAO.findByID((int) theId);
+    public Flower findById(long theId) {
+        return FlowerDAO.findById(theId);
     }
 
     @Transactional
     @Override
     public Flower updateFlower(int id, Flower updatedFlower) {
         // First, find the user by ID
-        Flower existingFlower = FlowerDAO.findByID(id);
+        Flower existingFlower = FlowerDAO.findById(id);
 
-        // If the user doesn't exist, throw UserNotFoundException
+        // If the user doesn't exist, throw FlowerNotFoundException
         if (existingFlower == null) {
-            throw new UserNotFoundException("flower not found with id: " + id);
+            throw new FlowerNotFoundException("flower not found with id: " + id);
         }
-
-        // Update the existing user with the data from updatedUser
         existingFlower.setName(updatedFlower.getName());
-        // existingUser.setLastName(updatedUser.getLastName());
-        existingFlower.setDetails(updatedFlower.getDetails());
-        existingFlower.setPrice(updatedFlower.getPrice());
         existingFlower.setQuantity(updatedFlower.getQuantity());
+        existingFlower.setPrice(updatedFlower.getPrice());
+        existingFlower.setDetails(updatedFlower.getDetails());
         existingFlower.setImage(updatedFlower.getImage());
 
-        // Check if the password has changed. If it has, encode the new password
-        // before saving.
-
-        // Save the updated user and return it
         return FlowerDAO.save(existingFlower);
     }
-      @Transactional
+
+    @Transactional
     @Override
-    public void deleteByID(int id) {
-        FlowerDAO.deleteByID(id);
+    public void deleteById(long id) {
+        Flower flower = FlowerDAO.findById(id);
+        if (flower == null) {
+            throw new FlowerNotFoundException("Flower not found with id: " + id);
+        }
+        FlowerDAO.deleteById(id);
     }
 
     @Transactional
     @Override
     public void uploadFlowerPhoto(int id, MultipartFile photo) throws IOException {
-        Flower flower = findByID(id);
+        Flower flower = findById(id);
         if (flower == null) {
-            throw new UserNotFoundException("flower not found with id " + id);
+            throw new FlowerNotFoundException("flower not found with id " + id);
         }
         if (photo.getSize() > 1024 * 1024) {
             throw new FileSizeException("File size must be < 1MB");
         }
-        // String filename = StringUtils.cleanPath(photo.getOriginalFilename());
-        // Path uploadPath = Paths.get(uploadDir, filename);
-        // photo.transferTo(uploadPath);
-        // save(user);
         String originalFilename = StringUtils.cleanPath(photo.getOriginalFilename());
         String filenameExtension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1);
         String filenameWithoutExtension = originalFilename.substring(0,
@@ -109,7 +102,6 @@ public class FlowerServiceImpl implements FlowerService {
 
         Path uploadPath = Paths.get(uploadDir, filename);
         photo.transferTo(uploadPath);
-
         flower.setImage(filename);
         FlowerDAO.save(flower);
     }

@@ -6,7 +6,6 @@ import bt.edu.gcit.usermicroservice.entity.User;
 import org.springframework.stereotype.Repository;
 // import javax.persistence.EntityManager;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.TypedQuery;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,29 +28,25 @@ public class FlowerDAOImpl implements FlowerDAO {
     }
 
     @Override
-    public Flower updateFlower(Flower updatedFlower) {
-        return entityManager.merge(updatedFlower);
+    public Flower findById(int id) {
+        return entityManager.find(Flower.class, id);
     }
-    
+
     @Override
-    public Flower findByID(int id) {
-        Flower flower = entityManager.find(Flower.class, id);
-        if (flower == null) {
-            throw new EntityNotFoundException("Flower with ID " + id + " not found");
-        }
-        return flower;
+    public Flower findById(long id) {
+        return entityManager.find(Flower.class, id);
     }
 
-     @Override
-    public void deleteByID(int id) {
-
-        Flower flower= findByID(id);
+    @Override
+    @Transactional
+    public void deleteById(long id) {
+        Flower flower = findById(id);
         if (flower == null) {
-            throw new EntityNotFoundException("Product with ID " + id + " not found");
+            throw new UserNotFoundException("Flower not found with id: " + id);
         }
         entityManager.remove(flower);
-
     }
+
     @Override
     public List<Flower> findByShopOwnerId(Long shopOwnerId) {
         String jpql = "SELECT f FROM Flower f WHERE f.shopOwner.id = :shopOwnerId";

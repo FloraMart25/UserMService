@@ -23,16 +23,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserDetailsService userDetailsService;
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
         System.out.println("Skipping JWT filter for path: " + path);
         return path.startsWith("/api/auth/login");
-        
-    }
-    
-    @Override
 
+    }
+
+    @Override
 
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
@@ -61,8 +61,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             try {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
                 if (jwtUtil.validateToken(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
 
                     usernamePasswordAuthenticationToken.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request));

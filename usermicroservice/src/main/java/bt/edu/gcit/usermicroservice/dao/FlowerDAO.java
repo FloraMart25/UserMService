@@ -12,12 +12,12 @@ public interface FlowerDAO {
 
         List<Flower> findByShopOwnerId(Long shopOwnerId);
 
-        Flower findByID(int theId);
+        Flower findById(int theId);
 
-        void deleteByID(int id);
+        Flower findById(long theId);
 
         List<Flower> findAll();
 
-        Flower updateFlower(Flower updatedFlower);
+        void deleteById(long id);
 
 }

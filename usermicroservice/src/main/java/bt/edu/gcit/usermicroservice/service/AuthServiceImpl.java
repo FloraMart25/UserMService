@@ -15,6 +15,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 @Service
 public class AuthServiceImpl implements AuthService {
+ // @Autowired
+ // private AuthenticationManager authenticationManager;
+ // @Autowired
+ // private UserDetailsService userDetailsService;
  private final AuthenticationManager authenticationManager;
  private final UserDetailsService userDetailsService;
  private final PasswordEncoder passwordEncoder;

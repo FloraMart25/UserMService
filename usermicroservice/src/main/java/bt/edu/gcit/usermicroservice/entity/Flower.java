@@ -18,10 +18,9 @@ public class Flower {
     @Column(name = "flower_name", length = 100, nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(length = 8, nullable = false)
     private int price;
-
-    @Column(nullable = false)
+    @Column(length = 8, nullable = false)
     private int quantity;
     @Column(nullable = false)
     private String details;
@@ -33,7 +32,7 @@ public class Flower {
     private LocalDateTime postedAt;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JsonBackReference
+    // @JsonBackReference
     @JoinColumn(name = "shopowner_id", nullable = false)
     private User shopOwner;
 
@@ -42,13 +41,12 @@ public class Flower {
         // Empty constructor
     }
 
-    public Flower(String name, int price, String details, LocalDateTime postedAt, User shopOwner, String image,
-            int quantity) {
+    public Flower(String name,int quantity, int price, String details, LocalDateTime postedAt, User shopOwner,String image) {
         this.name = name;
+        this.quantity = quantity;
         this.price = price;
         this.details = details;
         this.image = image;
-        this.quantity = quantity;
         this.postedAt = postedAt;
         this.shopOwner = shopOwner;
     }
@@ -108,11 +106,6 @@ public class Flower {
 
     public void setPostedAt(LocalDateTime postedAt) {
         this.postedAt = postedAt;
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        this.postedAt = LocalDateTime.now();
     }
 
     public User getShopOwner() {

@@ -52,21 +52,28 @@ public class FloraMartSecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf().disable()
-            .authorizeHttpRequests(configurer ->
-                configurer
-                    .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/flowers/add").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/flowers/**").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/flowers/getAllflowers").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/users/checkDuplicateEmail").hasAuthority("Admin")
-                    .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasAuthority("Admin")
-                    .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").permitAll()
-                    .requestMatchers(HttpMethod.PUT, "/api/users/{id}/enabled").permitAll()
-                    .requestMatchers(HttpMethod.PUT, "/flowers/**").permitAll()
-            )
-            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf().disable()
+                .authorizeHttpRequests(configurer -> configurer
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/flowers/add").permitAll() // maybe allow only authorized
+                                                                                          // users here
+                        .requestMatchers(HttpMethod.DELETE, "/api/flowers/delete/**").permitAll()
+                                                                                                            
+                        .requestMatchers(HttpMethod.GET, "/api/flowers/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/flowers/getAllflowers").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/checkDuplicateEmail").hasAuthority("Admin")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}").hasAuthority("Admin")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").permitAll() // consider protecting this
+
+                        .requestMatchers(HttpMethod.PUT, "/api/users/{id}/enabled").permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/flowers/update/**").permitAll() 
+                        .requestMatchers(HttpMethod.GET, "/images/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/flowers/images/**").permitAll()
+
+                        .anyRequest().authenticated() // fallback: authenticate everything else
+                )
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
