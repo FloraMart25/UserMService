@@ -42,16 +42,6 @@ public class UserRestController {
     public UserRestController(UserService userService) {
         this.userService = userService;
     }
-//     @PostMapping(consumes = "multipart/form-data")
-//  public User save(
-//     @RequestPart("Name") @Valid @NotNull String Name,
-//     @RequestPart("Phone") @Valid @NotNull int Phone,
-//  @RequestPart("email") @Valid @NotNull String email,
-//  @RequestPart("password") @Valid @NotNull String password,
-//  @RequestPart("photo") @Valid @NotNull MultipartFile photo,
-// //  @RequestPart("License_no") @Valid String License_No,
-// //  @RequestPart("certifications") @Valid String certifications,
-//  @RequestPart("roles") @Valid @NotNull String rolesJson)
 
 @PostMapping(consumes = "multipart/form-data")
 public User save(

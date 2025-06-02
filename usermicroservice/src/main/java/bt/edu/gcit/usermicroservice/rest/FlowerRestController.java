@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import bt.edu.gcit.usermicroservice.service.ImageUploadService;
 
 
 import java.io.IOException;
@@ -20,14 +21,12 @@ import java.io.File;
 import java.nio.file.Files;
 
 @RestController
-
 @RequestMapping("/api/flowers")
-
 public class FlowerRestController {
 
     private final FlowerService flowerService;
     private final UserService userService;
-    private ImageUploadService imageUploadService;
+    private final ImageUploadService imageUploadService;
 
     @Autowired
     public FlowerRestController(FlowerService flowerService, UserService userService, ImageUploadService imageUploadService) {
@@ -36,80 +35,83 @@ public class FlowerRestController {
         this.imageUploadService = imageUploadService;
     }
 
-    // ==========================
-    // 1. POST Flower with image
-    // ==========================
     @PostMapping(value = "/add", consumes = "multipart/form-data")
-    public ResponseEntity<Flower> addFlower(
+    public ResponseEntity<?> addFlower(
             @RequestParam("name") String name,
             @RequestParam("quantity") int quantity,
             @RequestParam("details") String details,
             @RequestParam("price") int price,
             @RequestParam("image") MultipartFile image,
-            @RequestParam("shopowner_id") Long shopownerId) throws IOException {
+            @RequestParam("shopowner_id") Long shopownerId) {
+        try {
+            User shopOwner = userService.findById(shopownerId);
+            if (shopOwner == null) {
+                return ResponseEntity.badRequest().body("Shop owner not found");
+            }
 
-        User shopOwner = userService.findById(shopownerId);
-        if (shopOwner == null) {
-            return ResponseEntity.badRequest().build();
+            Flower flower = new Flower();
+            flower.setName(name);
+            flower.setQuantity(quantity);
+            flower.setDetails(details);
+            flower.setPrice(price);
+            flower.setPostedAt(LocalDateTime.now());
+            flower.setShopOwner(shopOwner);
+
+            // Upload the image FIRST and get URL
+            String imageUrl = imageUploadService.uploadImage(image);
+            if (imageUrl == null || imageUrl.isEmpty()) {
+                return ResponseEntity.status(500).body("Failed to upload image");
+            }
+            flower.setImage(imageUrl);
+
+            // Save flower with image URL
+            Flower savedFlower = flowerService.save(flower);
+
+            return ResponseEntity.ok(savedFlower);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
-
-        Flower flower = new Flower();
-        flower.setName(name);
-        flower.setQuantity(quantity);
-        flower.setDetails(details);
-        flower.setPrice(price);
-        flower.setPostedAt(LocalDateTime.now());
-        flower.setShopOwner(shopOwner);
-
-        // Save the flower to the database without the image first
-        Flower savedFlower = flowerService.save(flower);
-
-         // Upload the product photo to Cloudinary
-        String imageUrl = imageUploadService.uploadImage(image);
-        savedFlower.setImage(imageUrl);
-
-        // Update the product with the photo URL
-        flowerService.updateFlower(savedFlower.getFlower_id(), savedFlower);
-
-        // Return the saved product
-        return ResponseEntity.ok(savedFlower);
     }
-    
-    // ==========================
-    // Other CRUD methods (PUT, GET)
-    // ==========================
-    @PutMapping(value = "/update/{id}")
-    public ResponseEntity<Flower> updateFlower(
+
+    @PutMapping(value = "/update/{id}", consumes = "multipart/form-data")
+    public ResponseEntity<?> updateFlower(
             @PathVariable int id,
             @RequestParam("name") String name,
             @RequestParam("quantity") int quantity,
             @RequestParam("details") String details,
             @RequestParam("price") int price,
-            @RequestParam("image") MultipartFile image) {
-        Flower flower = flowerService.findById(id);
-        if (flower == null) {
-            return ResponseEntity.notFound().build();
+            @RequestParam(value = "image", required = false) MultipartFile image) {
+        try {
+            Flower flower = flowerService.findById(id);
+            if (flower == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            flower.setName(name);
+            flower.setQuantity(quantity);
+            flower.setDetails(details);
+            flower.setPrice(price);
+
+            // If image is provided, upload and update
+            if (image != null && !image.isEmpty()) {
+                String imageUrl = imageUploadService.uploadImage(image);
+                if (imageUrl == null || imageUrl.isEmpty()) {
+                    return ResponseEntity.status(500).body("Failed to upload image");
+                }
+                flower.setImage(imageUrl);
+            }
+
+            Flower updatedFlower = flowerService.updateFlower(flower.getFlower_id(), flower);
+            return ResponseEntity.ok(updatedFlower);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
         }
-
-        flower.setName(name);
-        flower.setQuantity(quantity);
-        flower.setDetails(details);
-        flower.setPrice(price);
-
-       // Upload the product photo to Cloudinary
-        String imageUrl = imageUploadService.uploadImage(image);
-        flower.setImage(imageUrl);
-
-        // Update the product with the photo URL
-
-        // Return the saved product
-
-        Flower updatedFlower = flowerService.updateFlower(flower.getFlower_id(), flower);
-        return ResponseEntity.ok(updatedFlower);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Flower> getFlowerById(@PathVariable int id) {
+    public ResponseEntity<?> getFlowerById(@PathVariable int id) {
         Flower flower = flowerService.findById(id);
         if (flower == null) {
             return ResponseEntity.notFound().build();
@@ -123,7 +125,7 @@ public class FlowerRestController {
         return ResponseEntity.ok(flowers);
     }
 
-    @GetMapping("/getAllflowers")
+    @GetMapping("/all")
     public ResponseEntity<List<Flower>> getAllFlowers() {
         List<Flower> flowers = flowerService.findAll();
         return ResponseEntity.ok(flowers);
@@ -136,17 +138,12 @@ public class FlowerRestController {
             return ResponseEntity.notFound().build();
         }
 
-        // Delete the image from disk if it exists
         if (flower.getImage() != null) {
-            String imagePath = "uploads/flowers/" + flower.getImage();
-            File imageFile = new File(imagePath);
-            if (imageFile.exists()) {
-                imageFile.delete();
-            }
+            // Delete image from Cloudinary
+            imageUploadService.deleteImage(flower.getImage());
         }
 
         flowerService.deleteById(id);
         return ResponseEntity.ok("Flower deleted successfully.");
     }
-
 }
